@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/fawziridwan/auth_module/internal/models"
 	"github.com/fawziridwan/auth_module/internal/services"
@@ -29,7 +30,23 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		return
 	}
 
-	responses.SuccessResponse(ctx, http.StatusCreated, "User registered successfully", nil)
+	responses.SuccessResponse(
+		ctx,
+		http.StatusCreated,
+		"User registered successfully",
+		models.RegisterResponse{
+			StatusCode: http.StatusCreated,
+			Status:     true,
+			Message:    "User registered successfully",
+			User: models.RegisterData{
+				Name:      req.Name,
+				Email:     req.Email,
+				Password:  req.Password, // Note: Password should not be returned in production
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		},
+	)
 }
 
 func (c *AuthController) Login(ctx *gin.Context) {
