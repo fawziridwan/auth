@@ -39,11 +39,23 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	token, err := c.authService.Login(&req)
+	token, user, err := c.authService.Login(&req)
 	if err != nil {
 		responses.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	responses.SuccessResponse(ctx, http.StatusOK, "Login successful", models.AuthResponse{Token: token})
+	userData := models.UserData{
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Password:  user.Password, // Note: Password should not be returned in production
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+
+	responses.SuccessResponse(ctx, http.StatusOK, "Login successful", models.AuthResponse{
+		Token: token,
+		User:  userData,
+	})
 }

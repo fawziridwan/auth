@@ -12,7 +12,7 @@ import (
 
 type AuthService interface {
 	Register(user *models.RegisterRequest) error
-	Login(credentials *models.LoginRequest) (string, error)
+	Login(credentials *models.LoginRequest) (string, *models.User, error)
 }
 
 type authService struct {
@@ -42,21 +42,21 @@ func (s *authService) Register(userReq *models.RegisterRequest) error {
 	return s.userRepo.Create(user)
 }
 
-func (s *authService) Login(credentials *models.LoginRequest) (string, error) {
+func (s *authService) Login(credentials *models.LoginRequest) (string, *models.User, error) {
 	user, err := s.userRepo.FindByEmail(credentials.Email)
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", nil, errors.New("invalid credentials")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", nil, errors.New("invalid credentials")
 	}
 
 	token, err := jwt.GenerateToken(user.ID, s.jwtSecret, 24*time.Hour)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return token, nil
+	return token, user, nil
 }
